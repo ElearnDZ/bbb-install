@@ -1,0 +1,142 @@
+#!/bin/sh
+
+# Install Big Blue Button
+
+BBBHOST=bbb.elirion.net
+
+# Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group
+### gpasswd --add rsiddall sudo
+
+# Check we're 64 bit
+if [ `uname -m` != 'x86_64' ]
+then
+	echo "Requires 64 bit distro"
+	exit 0
+fi
+
+# Check we're installing on Ubuntu trusty 14.04
+if [ `lsb_release -si` != 'Ubuntu' ]
+then
+	echo "Requires Ubuntu"
+	exit 0
+fi
+if [ `lsb_release -sc` != 'trusty' ]
+then
+	echo "Requires Ubuntu trusty"
+	exit 0
+fi
+if [ `lsb_release -sr` != '14.04' ]
+then
+	echo "Requires Ubuntu trusty 14.04.x"
+	exit 0
+fi
+
+# Make sure the FFMPEG install script is present and executable
+
+if [ ! -x ./install-ffmpeg.sh ]
+then
+	echo "FFMPEG install script is missing"
+	exit 0
+fi
+
+# Make sure the SSL certificate is present
+
+if [ ! -f ./ssl.key ]
+then
+	echo "SSL key is missing"
+	exit 0
+fi
+
+if [ ! -f ./ssl.crt ]
+then
+	echo "SSL certificate is missing"
+	exit 0
+fi
+
+if [ ! -f ./ssl.ca ]
+then
+	echo "SSL certificate authority is missing (can be empty)"
+	exit 0
+fi
+
+#apt-get install lsof
+#apt-get install iptables
+
+# Make sure locale is set to en_US.UTF-8
+
+sudo apt-get -f install language-pack-en
+sudo locale-gen en_US.UTF-8
+sudo update-locale LANG=en_US.UTF-8 LC_MESSAGES=POSIX
+
+# Make sure we have multiverse
+
+grep -q -e '^deb (.*?) multiverse' /etc/apt/sources.list
+if [ $? -ne 0 ]
+then
+	sudo echo "deb http://us.archive.ubuntu.com/ubuntu/ trusty multiverse" | sudo tee -a /etc/apt/sources.list
+fi
+sudo apt-get update
+sudo apt-get dist-upgrade
+
+# Install LibreOffice repository
+
+sudo apt-get install software-properties-common
+sudo add-apt-repository ppa:libreoffice/libreoffice-4-4
+sudo add-apt-repository -y ppa:ondrej/php
+
+# Install BBB key and add repository
+
+wget http://ubuntu.bigbluebutton.org/bigbluebutton.asc -O- | sudo apt-key add -
+sudo echo "deb http://ubuntu.bigbluebutton.org/trusty-1-0/ bigbluebutton-trusty main" | sudo tee /etc/apt/sources.list.d/bigbluebutton.list
+sudo apt-get update
+
+# Install FFMPEG
+sudo ./install-ffmpeg.sh
+
+ffmpeg -version
+if [ $? -ne 0 ]
+then
+	echo "FFMPEG failed to install"
+	exit 0
+fi
+
+# Install BBB
+
+sudo apt-get install bigbluebutton
+
+# Install optional modules
+
+mods=bbb-demo bbb-check
+# sudo apt-get install $mods
+
+# Configure SSL
+
+if [ ! -d /etc/nginx/ssl ]
+then
+	mkdir -p /etc/nginx/ssl
+fi
+
+cp -p ./ssl.key /etc/nginx/ssl/${BBBHOST}.key
+chmod 600 /etc/nginx/ssl/${BBBHOST}.key
+
+cat ./ssl.crt >/etc/nginx/ssl/${BBBHOST}.crt
+cat ./ssl.ca >>/etc/nginx/ssl/${BBBHOST}.crt
+
+openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
+
+vi /etc/nginx/sites-available/bigbluebutton
+vi /opt/freeswitch/conf/sip_profiles/external.xml
+vi /etc/bigbluebutton/nginx/sip.nginx
+
+sed -e 's|ws://|wss://|g' -i /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js
+sed -e 's|ws://|wss://|g' -i /var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
+
+sed -e 's|http://|https://|g' -i /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties
+sed -e 's|http://|https://|g' -i /var/www/bigbluebutton/client/conf/config.xml
+
+# Turn on WebRTC and restart
+
+sudo bbb-conf --enablewebrtc
+sudo bbb-conf --clean
+sudo bbb-conf --check
+
