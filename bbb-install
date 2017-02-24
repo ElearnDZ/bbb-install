@@ -162,7 +162,7 @@ cat << EOF > ssl-snippet
 EOF
 sudo sed -e '/listen 80/r ssl-snippet' /etc/nginx/sites-available/bigbluebutton
 sudo sed -e 's/<param name="wss-binding" value="[^"]*">/<param name="wss-binding" value=":7443">/g' /opt/freeswitch/conf/sip_profiles/external.xml
-sudo sed -e 's/proxypass .*;$/proxypass https://127.0.0.1:7443;/g' /etc/bigbluebutton/nginx/sip.nginx
+sudo sed -e 's|proxypass .*;$|proxypass https://127.0.0.1:7443;|g' /etc/bigbluebutton/nginx/sip.nginx
 
 for f in  /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js \
 	/var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
