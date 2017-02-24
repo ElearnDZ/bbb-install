@@ -5,7 +5,7 @@
 BBBHOST=bbb.elirion.net
 PPA=
 
-while getopts "p:h" flag
+while getopts "a:p:h" flag
 do
 	case $flag in
 	a)
@@ -18,7 +18,7 @@ do
 done
 
 usage() {
-	echo "bbb-install [-p ffmpeg-ppa-url] [-a hostname-or-ip]
+	echo "bbb-install [-p ffmpeg-ppa-url] [-a hostname-or-ip] "
 	exit 1
 }
 
@@ -111,16 +111,15 @@ sudo apt-get update
 # Install FFMPEG
 if [ "${PPA}x" != "x" ]
 then
-	sudo
+	sudo add-apt-repository -y ppa:${PPA}
+	sudo apt-get update
+	sudo apt-get install ffmpeg
 else
 	sudo ./install-ffmpeg.sh
 fi
 
 ffmpeg -version
 if [ $? -ne 0 ]
-	sudo add-apt-repository -y ppa:${PPA}
-	sudo apt-get update
-	sudo apt-get install ffmpeg
 then
 	echo "FFMPEG failed to install"
 	exit 1
