@@ -167,7 +167,7 @@ sudo sed -e 's|proxypass .*;$|proxypass https://127.0.0.1:7443;|g' /etc/bigblueb
 for f in  /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js \
 	/var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
 do
-	if [ -f $i ]
+	if [ -f ${f} ]
 	then
 		sudo sed -e 's|ws://|wss://|g' -i ${f}
 	fi
@@ -176,7 +176,7 @@ done
 for f in /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties \
 	/var/www/bigbluebutton/client/conf/config.xml
 do
-	if [ -f $i ]
+	if [ -f ${f} ]
 	then
 		sudo sed -e 's|http://|https://|g' -i ${f}
 	fi
