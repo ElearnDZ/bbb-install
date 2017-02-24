@@ -3,6 +3,24 @@
 # Install Big Blue Button
 
 BBBHOST=bbb.elirion.net
+PPA=
+
+while getopts "p:h" flag
+do
+	case $flag in
+	a)
+		BBBHOST=$OPTARG;;
+	p)
+		PPA=$OPTARG;;
+	h)
+		usage;;
+	esac
+done
+
+usage() {
+	echo "bbb-install [-p ffmpeg-ppa-url] [-a hostname-or-ip]
+	exit 1
+}
 
 # Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group
 ### gpasswd --add rsiddall sudo
@@ -11,24 +29,24 @@ BBBHOST=bbb.elirion.net
 if [ `uname -m` != 'x86_64' ]
 then
 	echo "Requires 64 bit distro"
-	exit 0
+	exit 1
 fi
 
 # Check we're installing on Ubuntu trusty 14.04
 if [ `lsb_release -si` != 'Ubuntu' ]
 then
 	echo "Requires Ubuntu"
-	exit 0
+	exit 1
 fi
 if [ `lsb_release -sc` != 'trusty' ]
 then
 	echo "Requires Ubuntu trusty"
-	exit 0
+	exit 1
 fi
 if [ `lsb_release -sr` != '14.04' ]
 then
 	echo "Requires Ubuntu trusty 14.04.x"
-	exit 0
+	exit 1
 fi
 
 # Make sure the FFMPEG install script is present and executable
@@ -36,7 +54,7 @@ fi
 if [ ! -x ./install-ffmpeg.sh ]
 then
 	echo "FFMPEG install script is missing"
-	exit 0
+	exit 1
 fi
 
 # Make sure the SSL certificate is present
@@ -44,19 +62,19 @@ fi
 if [ ! -f ./ssl.key ]
 then
 	echo "SSL key is missing"
-	exit 0
+	exit 1
 fi
 
 if [ ! -f ./ssl.crt ]
 then
 	echo "SSL certificate is missing"
-	exit 0
+	exit 1
 fi
 
 if [ ! -f ./ssl.ca ]
 then
 	echo "SSL certificate authority is missing (can be empty)"
-	exit 0
+	exit 1
 fi
 
 #apt-get install lsof
@@ -91,13 +109,21 @@ sudo echo "deb http://ubuntu.bigbluebutton.org/trusty-1-0/ bigbluebutton-trusty 
 sudo apt-get update
 
 # Install FFMPEG
-sudo ./install-ffmpeg.sh
+if [ "${PPA}x" != "x" ]
+then
+	sudo
+else
+	sudo ./install-ffmpeg.sh
+fi
 
 ffmpeg -version
 if [ $? -ne 0 ]
+	sudo add-apt-repository -y ppa:${PPA}
+	sudo apt-get update
+	sudo apt-get install ffmpeg
 then
 	echo "FFMPEG failed to install"
-	exit 0
+	exit 1
 fi
 
 # Install BBB
@@ -113,7 +139,7 @@ mods=bbb-demo bbb-check
 
 if [ ! -d /etc/nginx/ssl ]
 then
-	mkdir -p /etc/nginx/ssl
+	sudo mkdir -p /etc/nginx/ssl
 fi
 
 cp -p ./ssl.key /etc/nginx/ssl/${BBBHOST}.key
@@ -135,16 +161,16 @@ cat << EOF > ssl-snippet
   ssl_prefer_server_ciphers on;
   ssl_dhparam /etc/nginx/ssl/dhp-2048.pem;
 EOF
-sed -e '/listen 80/ r ssl-snippet' /etc/nginx/sites-available/bigbluebutton
-sed -e 's/<param name="wss-binding" value="[^"]*">/<param name="wss-binding" value=":7443">/g' /opt/freeswitch/conf/sip_profiles/external.xml
-sed -e 's/proxypass .*;$/proxypass https://127.0.0.1:7443;/g' /etc/bigbluebutton/nginx/sip.nginx
+sudo sed -e '/listen 80/r ssl-snippet' /etc/nginx/sites-available/bigbluebutton
+sudo sed -e 's/<param name="wss-binding" value="[^"]*">/<param name="wss-binding" value=":7443">/g' /opt/freeswitch/conf/sip_profiles/external.xml
+sudo sed -e 's/proxypass .*;$/proxypass https://127.0.0.1:7443;/g' /etc/bigbluebutton/nginx/sip.nginx
 
 for f in  /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js \
 	/var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
 do
 	if [ -f $i ]
 	then
-		sed -e 's|ws://|wss://|g' -i ${f}
+		sudo sed -e 's|ws://|wss://|g' -i ${f}
 	fi
 done
 
@@ -153,7 +179,7 @@ for f in /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.pr
 do
 	if [ -f $i ]
 	then
-		sed -e 's|http://|https://|g' -i ${f}
+		sudo sed -e 's|http://|https://|g' -i ${f}
 	fi
 done
 
