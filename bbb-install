@@ -124,19 +124,43 @@ cat ./ssl.ca >>/etc/nginx/ssl/${BBBHOST}.crt
 
 openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
 
-vi /etc/nginx/sites-available/bigbluebutton
-vi /opt/freeswitch/conf/sip_profiles/external.xml
-vi /etc/bigbluebutton/nginx/sip.nginx
+cat << EOF > ssl-snippet
+  listen 443 ssl;
+  ssl_certificate /etc/nginx/ssl/${BBBHOST}.crt;
+  ssl_certificate_key /etc/nginx/ssl/${BBBHOST}.key;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_timeout 10m;
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS:!AES256";
+  ssl_prefer_server_ciphers on;
+  ssl_dhparam /etc/nginx/ssl/dhp-2048.pem;
+EOF
+sed -e '/listen 80/ r ssl-snippet' /etc/nginx/sites-available/bigbluebutton
+sed -e 's/<param name="wss-binding" value="[^"]*">/<param name="wss-binding" value=":7443">/g' /opt/freeswitch/conf/sip_profiles/external.xml
+sed -e 's/proxypass .*;$/proxypass https://127.0.0.1:7443;/g' /etc/bigbluebutton/nginx/sip.nginx
 
-sed -e 's|ws://|wss://|g' -i /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js
-sed -e 's|ws://|wss://|g' -i /var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
+for f in  /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js \
+	/var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
+do
+	if [ -f $i ]
+	then
+		sed -e 's|ws://|wss://|g' -i ${f}
+	fi
+done
 
-sed -e 's|http://|https://|g' -i /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties
-sed -e 's|http://|https://|g' -i /var/www/bigbluebutton/client/conf/config.xml
+for f in /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties \
+	/var/www/bigbluebutton/client/conf/config.xml
+do
+	if [ -f $i ]
+	then
+		sed -e 's|http://|https://|g' -i ${f}
+	fi
+done
 
 # Turn on WebRTC and restart
 
 sudo bbb-conf --enablewebrtc
+sudo bbb-conf --setip ${BBBHOST}
 sudo bbb-conf --clean
 sudo bbb-conf --check
 
