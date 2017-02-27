@@ -2,13 +2,13 @@
 
 # Install Big Blue Button
 
-BBBHOST=bbb.elirion.net
+BBBHOST=`hostname -i`
 PPA=
 
-while getopts "a:p:h" flag
+while getopts "n:p:h" flag
 do
 	case $flag in
-	a)
+	n)
 		BBBHOST=$OPTARG;;
 	p)
 		PPA=$OPTARG;;
@@ -18,16 +18,16 @@ do
 done
 
 usage() {
-	echo "bbb-install [-p ffmpeg-ppa-url] [-a hostname-or-ip] "
+	echo "bbb-install [-p ffmpeg-ppa-url] [-n hostname-or-ip] "
 	exit 1
 }
 
 # Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group
-### gpasswd --add rsiddall sudo
 
 if [ `id -u` -eq 0 ]
 then
 	echo "Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group"
+	echo "e.g. adduser ubuntu; gpasswd --add ubuntu sudo; su ubuntu; cd"
 	exit 1
 fi
 
@@ -147,13 +147,13 @@ then
 	sudo mkdir -p /etc/nginx/ssl
 fi
 
-cp -p ./ssl.key /etc/nginx/ssl/${BBBHOST}.key
-chmod 600 /etc/nginx/ssl/${BBBHOST}.key
+sudo cp -p ./ssl.key /etc/nginx/ssl/${BBBHOST}.key
+sudo chmod 600 /etc/nginx/ssl/${BBBHOST}.key
 
-cat ./ssl.crt >/etc/nginx/ssl/${BBBHOST}.crt
-cat ./ssl.ca >>/etc/nginx/ssl/${BBBHOST}.crt
+sudo cat ./ssl.crt >/etc/nginx/ssl/${BBBHOST}.crt
+sudo cat ./ssl.ca >>/etc/nginx/ssl/${BBBHOST}.crt
 
-openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
+sudo openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
 
 cat << EOF > ssl-snippet
   listen 443 ssl;
@@ -190,6 +190,11 @@ done
 
 # Open the firewall (should do this permanently)
 
+sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 1935 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 9123 -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport 5066 -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport 7443 -j ACCEPT
 sudo iptables -A INPUT -p udp --dport 16384:32768 -j ACCEPT
