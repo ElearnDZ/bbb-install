@@ -55,6 +55,8 @@ then
 	exit 1
 fi
 
+# Should check other prerequisites: 4GB RAM (8GB preferred), quad CPU cores, 2.6 GHz clock minimum, 500 GB disk space, etc.
+
 # Make sure the FFMPEG install script is present and executable
 
 if [ ! -x ./install-ffmpeg.sh ]
