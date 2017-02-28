@@ -2,23 +2,26 @@
 
 # Install Big Blue Button
 
-BBBHOST=`hostname -i`
+BBBHOST=
+TLSHOST=`hostname`
 PPA=
 
-while getopts "n:p:h" flag
+while getopts "n:p:s:h" flag
 do
 	case $flag in
 	n)
 		BBBHOST=$OPTARG;;
 	p)
 		PPA=$OPTARG;;
+	n)
+		TLSHOST=$OPTARG;;
 	h)
 		usage;;
 	esac
 done
 
 usage() {
-	echo "bbb-install [-p ffmpeg-ppa-url] [-n hostname-or-ip] "
+	echo "bbb-install [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
 	exit 1
 }
 
@@ -155,18 +158,18 @@ then
 	sudo mkdir -p /etc/nginx/ssl
 fi
 
-sudo cp -p ./ssl.key /etc/nginx/ssl/${BBBHOST}.key
-sudo chmod 600 /etc/nginx/ssl/${BBBHOST}.key
+sudo cp -p ./ssl.key /etc/nginx/ssl/${TLSHOST}.key
+sudo chmod 600 /etc/nginx/ssl/${TLSHOST}.key
 
-sudo cat ./ssl.crt >/etc/nginx/ssl/${BBBHOST}.crt
-sudo cat ./ssl.ca >>/etc/nginx/ssl/${BBBHOST}.crt
+sudo cat ./ssl.crt >/etc/nginx/ssl/${TLSHOST}.crt
+sudo cat ./ssl.ca >>/etc/nginx/ssl/${TLSHOST}.crt
 
 sudo openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
 
 cat << EOF > ssl-snippet
   listen 443 ssl;
-  ssl_certificate /etc/nginx/ssl/${BBBHOST}.crt;
-  ssl_certificate_key /etc/nginx/ssl/${BBBHOST}.key;
+  ssl_certificate /etc/nginx/ssl/${TLSHOST}.crt;
+  ssl_certificate_key /etc/nginx/ssl/${TLSHOST}.key;
   ssl_session_cache shared:SSL:10m;
   ssl_session_timeout 10m;
   ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
