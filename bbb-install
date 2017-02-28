@@ -104,6 +104,14 @@ fi
 sudo apt-get update
 sudo apt-get dist-upgrade
 
+# Install PPA repository, if specified
+
+if [ "${PPA}x" != "x" ]
+then
+	sudo add-apt-repository -y ppa:${PPA}
+	sudo apt-get update
+fi
+
 # Install LibreOffice repository
 
 sudo apt-get install software-properties-common
@@ -119,8 +127,6 @@ sudo apt-get update
 # Install FFMPEG
 if [ "${PPA}x" != "x" ]
 then
-	sudo add-apt-repository -y ppa:${PPA}
-	sudo apt-get update
 	sudo apt-get install ffmpeg
 else
 	sudo ./install-ffmpeg.sh
@@ -204,7 +210,10 @@ sudo iptables -A INPUT -p udp --dport 16384:32768 -j ACCEPT
 # Turn on WebRTC and restart
 
 sudo bbb-conf --enablewebrtc
-sudo bbb-conf --setip ${BBBHOST}
+if [ "${BBBHOST}x" != "x" ]
+then
+	sudo bbb-conf --setip ${BBBHOST}
+fi
 sudo bbb-conf --clean
 sudo bbb-conf --check
 
