@@ -13,7 +13,7 @@ do
 		BBBHOST=$OPTARG;;
 	p)
 		PPA=$OPTARG;;
-	n)
+	s)
 		TLSHOST=$OPTARG;;
 	h)
 		usage;;
@@ -62,9 +62,13 @@ fi
 
 # Make sure the FFMPEG install script is present and executable
 
-if [ ! -x ./install-ffmpeg.sh ]
+if [ ! -f ./install-ffmpeg.sh ]
 then
 	echo "FFMPEG install script is missing"
+	exit 1
+elif [ ! -x ./install-ffmpeg.sh ]
+then
+	echo "FFMPEG install script is not executable"
 	exit 1
 fi
 
