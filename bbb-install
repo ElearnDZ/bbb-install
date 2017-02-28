@@ -152,7 +152,7 @@ sudo apt-get install bigbluebutton
 
 # Install optional modules
 
-mods=bbb-demo bbb-check
+mods='bbb-demo bbb-check'
 # sudo apt-get install $mods
 
 # Configure SSL
