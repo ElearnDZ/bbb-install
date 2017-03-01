@@ -165,7 +165,7 @@ fi
 sudo cp -p ./ssl.key /etc/nginx/ssl/${TLSHOST}.key
 sudo chmod 600 /etc/nginx/ssl/${TLSHOST}.key
 
-sudo cp -p ./ssl.crt >/etc/nginx/ssl/${TLSHOST}.crt
+sudo cp -p ./ssl.crt /etc/nginx/ssl/${TLSHOST}.crt
 sudo cat ./ssl.ca >>/etc/nginx/ssl/${TLSHOST}.crt
 
 sudo openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
