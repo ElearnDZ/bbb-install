@@ -223,8 +223,8 @@ cat << EOF > iptables-snippet
 -A INPUT -p tcp --dport 7443 -j ACCEPT
 -A INPUT -p udp --dport 16384:32768 -j ACCEPT
 EOF
-sudo set -e '/INPUT/r iptables-snippet' -i /etc/iptables/rules.v4
-sudo service iptables restart
+sudo sed -e '/INPUT/r iptables-snippet' -i /etc/iptables/rules.v4
+sudo service iptables-persistent restart
 
 # Turn on WebRTC and restart
 
