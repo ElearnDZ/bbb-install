@@ -211,14 +211,19 @@ done
 
 # Open the firewall (should do this permanently)
 
-sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 1935 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 9123 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 5066 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 7443 -j ACCEPT
-sudo iptables -A INPUT -p udp --dport 16384:32768 -j ACCEPT
+sudo apt-get install iptables-persistent
+
+cat << EOF > iptables-snippet
+-A INPUT -p tcp --dport 22 -j ACCEPT
+-A INPUT -p tcp --dport 80 -j ACCEPT
+-A INPUT -p tcp --dport 443 -j ACCEPT
+-A INPUT -p tcp --dport 1935 -j ACCEPT
+-A INPUT -p tcp --dport 9123 -j ACCEPT
+-A INPUT -p tcp --dport 5066 -j ACCEPT
+-A INPUT -p tcp --dport 7443 -j ACCEPT
+-A INPUT -p udp --dport 16384:32768 -j ACCEPT
+EOF
+sudo set -e '/INPUT/r iptables-snippet' -i /etc/iptables/rules.v4
 
 # Turn on WebRTC and restart
 
