@@ -1,14 +1,17 @@
 #!/bin/sh
 
-# Install Big Blue Button
+# Install Big Blue Button 1.0
 
 BBBHOST=
 TLSHOST=`hostname`
 PPA=
+MODS=
 
-while getopts "n:p:s:h" flag
+while getopts "m:n:p:s:h" flag
 do
 	case $flag in
+	m)
+		MODS=$OPTARG;;
 	n)
 		BBBHOST=$OPTARG;;
 	p)
@@ -21,7 +24,7 @@ do
 done
 
 usage() {
-	echo "bbb-install [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
+	echo "bbb-install [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
 	exit 1
 }
 
@@ -152,8 +155,11 @@ sudo apt-get install bigbluebutton
 
 # Install optional modules
 
-mods='bbb-demo bbb-check'
-# sudo apt-get install $mods
+#mods='bbb-demo bbb-check'
+if [ "${MODS}x" != "x" ]
+then
+	sudo apt-get install $MODS
+fi
 
 # Configure SSL
 
