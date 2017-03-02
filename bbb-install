@@ -7,6 +7,11 @@ TLSHOST=`hostname`
 PPA=
 MODS=
 
+usage() {
+	echo "bbb-install [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
+	exit 1
+}
+
 while getopts "m:n:p:s:h" flag
 do
 	case $flag in
@@ -22,11 +27,6 @@ do
 		usage;;
 	esac
 done
-
-usage() {
-	echo "bbb-install [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
-	exit 1
-}
 
 # Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group
 
