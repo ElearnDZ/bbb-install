@@ -11,12 +11,12 @@ DOSSL=y
 usage() {
 	echo "bbb-install [-h] [-c] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
 	echo "where:"
-	echo "-c = Do not enable SSL"
-	echo "-h = Help"
-	echo "-m = Extra BBB modules to install, e.g. -m 'bbb-demo bbb-check'"
-	echo "-p = PPA to use to install ffmpeg, e.g. -p mc3man/trusty-media"
-	echo "-n = BBB hostname or IP address (if not default)"
-	echo "-s = SSL hostname to use in configuration, if not default hostname"
+	echo "	-c = Do not enable SSL"
+	echo "	-h = Help"
+	echo "	-m = Extra BBB modules to install, e.g. -m 'bbb-demo bbb-check'"
+	echo "	-p = PPA to use to install ffmpeg, e.g. -p mc3man/trusty-media"
+	echo "	-n = BBB hostname or IP address (if not default)"
+	echo "	-s = SSL hostname to use in configuration, if not default hostname"
 	exit 1
 }
 
