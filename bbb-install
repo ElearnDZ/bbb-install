@@ -214,6 +214,7 @@ done
 
 sudo apt-get install iptables-persistent
 
+sudo service iptables-persistent save
 sudo cat << EOF >> /etc/iptables/rules.v4
 -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 -A INPUT -p tcp --dport 22 -j ACCEPT
