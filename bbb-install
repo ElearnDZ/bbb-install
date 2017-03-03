@@ -6,13 +6,93 @@ BBBHOST=
 TLSHOST=`hostname`
 PPA=
 MODS=
+DOSSL=y
 
 usage() {
-	echo "bbb-install [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
+	echo "bbb-install [-h] [-c] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
+	echo "where:"
+	echo "-c = Do not enable SSL"
+	echo "-h = Help"
+	echo "-m = Extra BBB modules to install, e.g. -m 'bbb-demo bbb-check'"
+	echo "-p = PPA to use to install ffmpeg, e.g. -p mc3man/trusty-media"
+	echo "-n = BBB hostname or IP address (if not default)"
+	echo "-s = SSL hostname to use in configuration, if not default hostname"
 	exit 1
 }
 
-while getopts "m:n:p:s:h" flag
+setup_ssl() {
+	# Configure SSL
+
+	if [ ! -d /etc/nginx/ssl ]
+	then
+		sudo mkdir -p /etc/nginx/ssl
+	fi
+
+	sudo cp -p ./ssl.key /etc/nginx/ssl/${TLSHOST}.key
+	sudo chmod 600 /etc/nginx/ssl/${TLSHOST}.key
+
+	sudo cp -p ./ssl.crt /etc/nginx/ssl/${TLSHOST}.crt
+	sudo cat ./ssl.ca >>/etc/nginx/ssl/${TLSHOST}.crt
+
+	sudo openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
+
+	cat << EOF > ssl-snippet
+  listen 443 ssl;
+  ssl_certificate /etc/nginx/ssl/${TLSHOST}.crt;
+  ssl_certificate_key /etc/nginx/ssl/${TLSHOST}.key;
+  ssl_session_cache shared:SSL:10m;
+  ssl_session_timeout 10m;
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS:!AES256";
+  ssl_prefer_server_ciphers on;
+  ssl_dhparam /etc/nginx/ssl/dhp-2048.pem;
+EOF
+	sudo sed -e '/listen[[:blank:]]*80/r ssl-snippet' -i /etc/nginx/sites-available/bigbluebutton
+	sudo sed -e '/ws-binding/a\
+ <param name="wss-binding" value=":7443">' -i /opt/freeswitch/conf/sip_profiles/external.xml
+	sudo sed -e 's|proxy_pass http://\(.*\):.*;$|proxy_pass https://\1:7443;|g' -i /etc/bigbluebutton/nginx/sip.nginx
+
+	for f in  /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js \
+		/var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
+	do
+		if [ -f ${f} ]
+		then
+			sudo sed -e 's|ws://|wss://|g' -i ${f}
+		fi
+	done
+
+	for f in /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties \
+		/var/www/bigbluebutton/client/conf/config.xml
+	do
+		if [ -f ${f} ]
+		then
+			sudo sed -e 's|http://|https://|g' -i ${f}
+		fi
+	done
+}
+
+setup_iptables() {
+# Open the firewall
+
+	sudo apt-get install iptables-persistent
+
+	sudo service iptables-persistent save
+	sudo cat << EOF >> /etc/iptables/rules.v4
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -p tcp --dport 22 -j ACCEPT
+-A INPUT -p tcp --dport 80 -j ACCEPT
+-A INPUT -p tcp --dport 443 -j ACCEPT
+-A INPUT -p tcp --dport 1935 -j ACCEPT
+-A INPUT -p tcp --dport 9123 -j ACCEPT
+-A INPUT -p tcp --dport 5066 -j ACCEPT
+-A INPUT -p tcp --dport 7443 -j ACCEPT
+-A INPUT -p udp --dport 16384:32768 -j ACCEPT
+-A INPUT -j DROP
+EOF
+	sudo service iptables-persistent restart
+}
+
+while getopts "m:n:p:s:ch" flag
 do
 	case $flag in
 	m)
@@ -23,6 +103,8 @@ do
 		PPA=$OPTARG;;
 	s)
 		TLSHOST=$OPTARG;;
+	c)
+		DOSSL=n;;
 	h)
 		usage;;
 	esac
@@ -77,26 +159,27 @@ fi
 
 # Make sure the SSL certificate is present
 
-if [ ! -f ./ssl.key ]
+if [ "$DOSSL" = "y" ]
 then
-	echo "SSL key is missing"
-	exit 1
-fi
 
-if [ ! -f ./ssl.crt ]
-then
-	echo "SSL certificate is missing"
-	exit 1
-fi
+	if [ ! -f ./ssl.key ]
+	then
+		echo "SSL key is missing"
+		exit 1
+	fi
 
-if [ ! -f ./ssl.ca ]
-then
-	echo "SSL certificate authority is missing (can be empty)"
-	exit 1
-fi
+	if [ ! -f ./ssl.crt ]
+	then
+		echo "SSL certificate is missing"
+		exit 1
+	fi
 
-#apt-get install lsof
-#apt-get install iptables
+	if [ ! -f ./ssl.ca ]
+	then
+		echo "SSL certificate authority is missing (can be empty)"
+		exit 1
+	fi
+fi
 
 # Make sure locale is set to en_US.UTF-8
 
@@ -161,73 +244,11 @@ then
 	sudo apt-get install $MODS
 fi
 
-# Configure SSL
-
-if [ ! -d /etc/nginx/ssl ]
+if [ "$DOSSL" = 'y' ]
 then
-	sudo mkdir -p /etc/nginx/ssl
+	setup_ssl
 fi
-
-sudo cp -p ./ssl.key /etc/nginx/ssl/${TLSHOST}.key
-sudo chmod 600 /etc/nginx/ssl/${TLSHOST}.key
-
-sudo cp -p ./ssl.crt /etc/nginx/ssl/${TLSHOST}.crt
-sudo cat ./ssl.ca >>/etc/nginx/ssl/${TLSHOST}.crt
-
-sudo openssl dhparam -out /etc/nginx/ssl/dhp-2048.pem 2048
-
-cat << EOF > ssl-snippet
-  listen 443 ssl;
-  ssl_certificate /etc/nginx/ssl/${TLSHOST}.crt;
-  ssl_certificate_key /etc/nginx/ssl/${TLSHOST}.key;
-  ssl_session_cache shared:SSL:10m;
-  ssl_session_timeout 10m;
-  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-  ssl_ciphers "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS:!AES256";
-  ssl_prefer_server_ciphers on;
-  ssl_dhparam /etc/nginx/ssl/dhp-2048.pem;
-EOF
-sudo sed -e '/listen[[:blank:]]*80/r ssl-snippet' -i /etc/nginx/sites-available/bigbluebutton
-sudo sed -e '/ws-binding/a\
- <param name="wss-binding" value=":7443">' -i /opt/freeswitch/conf/sip_profiles/external.xml
-sudo sed -e 's|proxy_pass http://\(.*\):.*;$|proxy_pass https://\1:7443;|g' -i /etc/bigbluebutton/nginx/sip.nginx
-
-for f in  /var/www/bigbluebutton/client/lib/bbb_webrtc_bridge_sip.js \
-	/var/www/bigbluebutton/check/resources/lib/bbb_webrtc_bridge_sip.js
-do
-	if [ -f ${f} ]
-	then
-		sudo sed -e 's|ws://|wss://|g' -i ${f}
-	fi
-done
-
-for f in /var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties \
-	/var/www/bigbluebutton/client/conf/config.xml
-do
-	if [ -f ${f} ]
-	then
-		sudo sed -e 's|http://|https://|g' -i ${f}
-	fi
-done
-
-# Open the firewall (should do this permanently)
-
-sudo apt-get install iptables-persistent
-
-sudo service iptables-persistent save
-sudo cat << EOF >> /etc/iptables/rules.v4
--A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
--A INPUT -p tcp --dport 22 -j ACCEPT
--A INPUT -p tcp --dport 80 -j ACCEPT
--A INPUT -p tcp --dport 443 -j ACCEPT
--A INPUT -p tcp --dport 1935 -j ACCEPT
--A INPUT -p tcp --dport 9123 -j ACCEPT
--A INPUT -p tcp --dport 5066 -j ACCEPT
--A INPUT -p tcp --dport 7443 -j ACCEPT
--A INPUT -p udp --dport 16384:32768 -j ACCEPT
--A INPUT -j DROP
-EOF
-sudo service iptables-persistent restart
+setup_iptables
 
 # Turn on WebRTC and restart
 
