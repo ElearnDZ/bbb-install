@@ -1,0 +1,75 @@
+#!/bin/sh
+#
+# Install the BigBlueButton development environment on top of a working BBB installation
+
+# Should test that BBB is installed
+
+# Instructions from "Setup development environment
+
+sudo apt-get install wget
+sudo apt-get install git-core ant openjdk-7-jdk
+echo "export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64" >> ~/.profile 
+source ~/.profile 
+echo $JAVA_HOME
+mkdir -p ~/dev/tools
+cd ~/dev/tools/
+wget http://services.gradle.org/distributions/gradle-1.10-bin.zip
+unzip gradle-1.10-bin.zip
+ln -s gradle-1.10 gradle
+wget http://dist.springframework.org.s3.amazonaws.com/release/GRAILS/grails-2.3.6.zip
+unzip grails-2.3.6.zip
+ln -s grails-2.3.6 grails
+wget https://dl.bintray.com/sbt/native-packages/sbt/0.13.9/sbt-0.13.9.tgz
+tar zxvf sbt-0.13.9.tgz
+ls -al
+wget https://archive.apache.org/dist/flex/4.13.0/binaries/apache-flex-sdk-4.13.0-bin.tar.gz
+tar xvfz apache-flex-sdk-4.13.0-bin.tar.gz
+wget --content-disposition https://github.com/swfobject/swfobject/archive/2.2.tar.gz
+tar xvfz swfobject-2.2.tar.gz
+cp -r swfobject-2.2/swfobject apache-flex-sdk-4.13.0-bin/templates/
+cd apache-flex-sdk-4.13.0-bin/
+mkdir -p in/
+wget http://download.macromedia.com/pub/flex/sdk/builds/flex4.6/flex_sdk_4.6.0.23201B.zip -P in/
+ant -f frameworks/build.xml thirdparty-downloads
+find ~/dev/tools/apache-flex-sdk-4.13.0-bin -type d -exec chmod o+rx '{}' \;
+chmod 755 ~/dev/tools/apache-flex-sdk-4.13.0-bin/bin/*
+chmod -R +r ~/dev/tools/apache-flex-sdk-4.13.0-bin
+ln -s ~/dev/tools/apache-flex-sdk-4.13.0-bin ~/dev/tools/flex
+cd ~/dev/tools/
+mkdir -p apache-flex-sdk-4.13.0-bin/frameworks/libs/player/11.2
+cd apache-flex-sdk-4.13.0-bin/frameworks/libs/player/11.2
+wget http://fpdownload.macromedia.com/get/flashplayer/installers/archive/playerglobal/playerglobal11_2.swc
+mv -f playerglobal11_2.swc playerglobal.swc
+cd ~/dev/tools/apache-flex-sdk-4.13.0-bin
+sed -i "s/11.1/11.2/g" frameworks/flex-config.xml
+sed -i "s/<swf-version>14<\/swf-version>/<swf-version>15<\/swf-version>/g" frameworks/flex-config.xml
+sed -i "s/{playerglobalHome}\/{targetPlayerMajorVersion}.{targetPlayerMinorVersion}/libs\/player\/11.2/g" frameworks/flex-config.xml
+cat << EOF >> ~/.profile
+export GRAILS_HOME=$HOME/dev/tools/grails
+export PATH=$PATH:$GRAILS_HOME/bin
+
+export FLEX_HOME=$HOME/dev/tools/flex
+export PATH=$PATH:$FLEX_HOME/bin
+
+export GRADLE_HOME=$HOME/dev/tools/gradle
+export PATH=$PATH:$GRADLE_HOME/bin
+
+export SBT_HOME=$HOME/dev/tools/sbt
+export PATH=$PATH:$SBT_HOME/bin 
+
+export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+export ANT_OPTS="-Xmx512m -XX:MaxPermSize=768m"
+EOF
+source ~/.profile 
+mxmlc -version
+cd ~/dev/
+git clone https://github.com/bigbluebutton/bigbluebutton
+mkdir ~/.config
+sudo chown --reference=~/.profile ~/.config/
+cd ~/dev/bigbluebutton/
+git status
+git remote add upstream https://github.com/bigbluebutton/bigbluebutton.git
+git remote -v
+git fetch upstream
+git checkout -b my-1.0-work upstream/v1.0.x-release
+exit
