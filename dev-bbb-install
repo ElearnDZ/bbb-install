@@ -4,12 +4,12 @@
 
 # Should test that BBB is installed
 
-# Instructions from "Setup development environment
+# Instructions from "Setup development environment"
 
 sudo apt-get install wget
 sudo apt-get install git-core ant openjdk-7-jdk
 echo "export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64" >> ~/.profile 
-source ~/.profile 
+source ~/.profile
 echo $JAVA_HOME
 mkdir -p ~/dev/tools
 cd ~/dev/tools/
@@ -72,4 +72,4 @@ git remote add upstream https://github.com/bigbluebutton/bigbluebutton.git
 git remote -v
 git fetch upstream
 git checkout -b my-1.0-work upstream/v1.0.x-release
-exit
+
