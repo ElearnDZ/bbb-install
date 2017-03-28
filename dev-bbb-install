@@ -2,6 +2,41 @@
 #
 # Install the BigBlueButton development environment on top of a working BBB installation
 
+BBBGIT=
+
+usage() {
+	echo "bbb-install [-h] [-b gitrepo-url]"
+	echo "where:"
+	echo "	-h = Help"
+	echo "	-b = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton"
+	exit 1
+}
+
+while getopts "b:h" flag
+do
+	case $flag in
+	b)
+		BBBGIT=$OPTARG;;
+	h)
+		usage;;
+	esac
+done
+
+# Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group
+
+if [ `id -u` -eq 0 ]
+then
+	echo "Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group"
+	echo "e.g. adduser ubuntu; gpasswd --add ubuntu sudo; su ubuntu; cd"
+	exit 1
+fi
+
+if [ "${BBBGIT}x" = "x" ]
+then
+	echo "You must specify the upstream GIT repository to clone, e.g. '-b https://github.com/bigbluebutton/bigbluebutton'"
+	exit 1
+fi
+
 # Should test that BBB is installed
 
 # Instructions from "Setup development environment"
@@ -63,12 +98,12 @@ EOF
 source ~/.profile 
 mxmlc -version
 cd ~/dev/
-git clone https://github.com/bigbluebutton/bigbluebutton
+git clone $BBBGIT
 mkdir ~/.config
 sudo chown --reference=~/.profile ~/.config/
 cd ~/dev/bigbluebutton/
 git status
-git remote add upstream https://github.com/bigbluebutton/bigbluebutton.git
+git remote add upstream ${BBBGIT}.git
 git remote -v
 git fetch upstream
 git checkout -b my-1.0-work upstream/v1.0.x-release
