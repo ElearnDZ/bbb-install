@@ -5,7 +5,7 @@
 BBBGIT=
 
 usage() {
-	echo "bbb-install [-h] [-b gitrepo-url]"
+	echo "dev-bbb-install [-h] [-b gitrepo-url]"
 	echo "where:"
 	echo "	-h = Help"
 	echo "	-b = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton"
