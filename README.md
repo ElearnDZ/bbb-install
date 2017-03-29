@@ -19,3 +19,12 @@ The script will try to install ffmpeg from source, as specified in the BBB insta
 
 The SSL certificate, key, and intermediate CA must be in ssl.crt, ssl.key, and ssl.ca in the same folder as the script.
 
+The development environment can be installed using dev-bbb-install.
+
+	dev-bbb-install [-h] [-b gitrepo-url]
+	where:
+		-h = Help
+		-b = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton
+
+You must pass an upstream GIT repository for the script to clone.  This is most likely your fork of bigbluebutton/bigbluebutton.
+
