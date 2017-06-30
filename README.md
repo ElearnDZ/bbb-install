@@ -1,6 +1,6 @@
 # bbb-install
 
-Install BigBlueButton 1.0 using the instructions at http://docs.bigbluebutton.org/install/install.html, and optionally install the development environment and tools.
+Install BigBlueButton 1.0 using the instructions at http://docs.bigbluebutton.org/10install.html, and optionally install the development environment and tools.
 
 This is an interactive installation.  You cannot leave it unattended as you will need to confirm installation of some items and agree to licenses.
 
