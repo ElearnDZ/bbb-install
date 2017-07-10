@@ -79,7 +79,7 @@ cd ~/dev/tools/apache-flex-sdk-4.13.0-bin
 sed -i "s/11.1/11.2/g" frameworks/flex-config.xml
 sed -i "s/<swf-version>14<\/swf-version>/<swf-version>15<\/swf-version>/g" frameworks/flex-config.xml
 sed -i "s/{playerglobalHome}\/{targetPlayerMajorVersion}.{targetPlayerMinorVersion}/libs\/player\/11.2/g" frameworks/flex-config.xml
-cat << EOF >> ~/.profile
+cat << 'EOF' >> ~/.profile
 export GRAILS_HOME=$HOME/dev/tools/grails
 export PATH=$PATH:$GRAILS_HOME/bin
 
@@ -99,8 +99,11 @@ source ~/.profile
 mxmlc -version
 cd ~/dev/
 git clone $BBBGIT
-mkdir ~/.config
-sudo chown --reference=~/.profile ~/.config/
+if [ ! -d $HOME/.config ]
+then
+	mkdir $HOME/.config
+	sudo chown --reference=$HOME/.profile $HOME/.config/
+fi
 cd ~/dev/bigbluebutton/
 git status
 git remote add upstream ${BBBGIT}.git
