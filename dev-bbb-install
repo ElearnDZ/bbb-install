@@ -98,7 +98,7 @@ EOF
 source ~/.profile 
 mxmlc -version
 cd ~/dev/
-git clone $BBBGIT
+git clone $BBBGIT -d bigbluebutton
 if [ ! -d $HOME/.config ]
 then
 	mkdir $HOME/.config
