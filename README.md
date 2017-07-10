@@ -26,5 +26,5 @@ The development environment can be installed using dev-bbb-install.
 		-h = Help
 		-b = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton
 
-You must pass an upstream GIT repository for the script to clone.  This is most likely your fork of bigbluebutton/bigbluebutton.
+You must pass an upstream GIT repository for the script to clone.  This is most likely your fork of bigbluebutton/bigbluebutton.  An https URL is recommended as GIT will prompt you for a password if one is required.  With a git URL you may need to have keys set up to allow you access to the repository.
 
