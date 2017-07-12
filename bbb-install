@@ -7,11 +7,13 @@ TLSHOST=`hostname`
 PPA=
 MODS=
 DOSSL=y
+ENTROPY=n
 
 usage() {
 	echo "bbb-install [-h] [-c] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
 	echo "where:"
 	echo "	-c = Do not enable SSL"
+	echo "	-e = Install haveged for increased entropy on virtual machines"
 	echo "	-h = Help"
 	echo "	-m = Extra BBB modules to install, e.g. -m 'bbb-demo bbb-check'"
 	echo "	-p = PPA to use to install ffmpeg, e.g. -p mc3man/trusty-media"
@@ -92,7 +94,7 @@ EOF
 	sudo service iptables-persistent restart
 }
 
-while getopts "m:n:p:s:ch" flag
+while getopts "m:n:p:s:ceh" flag
 do
 	case $flag in
 	m)
@@ -105,6 +107,8 @@ do
 		TLSHOST=$OPTARG;;
 	c)
 		DOSSL=n;;
+	e)
+		ENTROPY=y;;
 	h)
 		usage;;
 	esac
@@ -196,6 +200,14 @@ then
 fi
 sudo apt-get update
 sudo apt-get dist-upgrade
+
+# Install haveged for increased entropy if specified
+
+if [ "${ENTROPY}" = "y" ]
+then
+	sudo apt-get install haveged
+	sudo service haveged condrestart
+fi
 
 # Install PPA repository, if specified
 
