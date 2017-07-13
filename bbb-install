@@ -11,7 +11,7 @@ ENTROPY=n
 ANSWER=
 
 usage() {
-	echo "bbb-install [-h] [-c] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
+	echo "bbb-install [-h] [-c] [-e] [-y] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
 	echo "where:"
 	echo "	-c = Do not enable SSL"
 	echo "	-e = Install haveged for increased entropy on virtual machines"
@@ -239,7 +239,7 @@ if [ "${PPA}x" != "x" ]
 then
 	sudo apt-get ${ANSWER} install ffmpeg
 else
-	sudo ./install-ffmpeg.sh
+	sudo ./install-ffmpeg.sh ${ANSWER}
 fi
 
 ffmpeg -version
