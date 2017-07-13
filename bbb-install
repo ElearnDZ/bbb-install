@@ -9,6 +9,7 @@ MODS=
 DOSSL=y
 ENTROPY=n
 ANSWER=
+LONG_ANSWER=
 
 usage() {
 	echo "bbb-install [-h] [-c] [-e] [-y] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]"
@@ -112,7 +113,8 @@ do
 	e)
 		ENTROPY=y;;
 	y)
-		ANSWER='-y';;
+		ANSWER='-y'
+		LONG_ANSWER='-y --force-yes';;
 	h)
 		usage;;
 	esac
@@ -251,7 +253,8 @@ fi
 
 # Install BBB
 
-sudo apt-get install bigbluebutton
+sudo apt-get --download-only install bigbluebutton
+sudo apt-get ${LONG_ANSWER} install bigbluebutton
 
 # Install optional modules
 
