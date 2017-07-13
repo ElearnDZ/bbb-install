@@ -90,6 +90,7 @@ setup_iptables() {
 	sudo iptables -A INPUT -p tcp --dport 5066 -j ACCEPT
 	sudo iptables -A INPUT -p tcp --dport 7443 -j ACCEPT
 	sudo iptables -A INPUT -p udp --dport 16384:32768 -j ACCEPT
+	sudo iptables -A INPUT -i lo -j ACCEPT
 	sudo iptables -A INPUT -j DROP
 	sudo service iptables-persistent save
 	sudo service iptables-persistent restart
