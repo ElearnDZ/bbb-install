@@ -253,12 +253,11 @@ fi
 
 # Install BBB
 
-sudo apt-get --download-only install bigbluebutton
+sudo apt-get --download-only ${LONG_ANSWER} install bigbluebutton # Download first to get two attempts at a successful download
 sudo apt-get ${LONG_ANSWER} install bigbluebutton
 
 # Install optional modules
 
-#mods='bbb-demo bbb-check'
 if [ "${MODS}x" != "x" ]
 then
 	sudo apt-get ${ANSWER} install $MODS
