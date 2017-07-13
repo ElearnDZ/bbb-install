@@ -3,12 +3,14 @@
 # Install the BigBlueButton development environment on top of a working BBB installation
 
 BBBGIT=
+ANSWER=
 
 usage() {
 	echo "dev-bbb-install [-h] [-b gitrepo-url]"
 	echo "where:"
 	echo "	-h = Help"
-	echo "	-b = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton"
+	echo "	-b <url> = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton"
+	echo "	-y = Answer Y to apt-get install"
 	exit 1
 }
 
@@ -19,6 +21,8 @@ do
 		BBBGIT=$OPTARG;;
 	h)
 		usage;;
+	y)
+		ANSWER='-y';;
 	esac
 done
 
@@ -41,8 +45,8 @@ fi
 
 # Instructions from "Setup development environment"
 
-sudo apt-get install wget
-sudo apt-get install git-core ant openjdk-7-jdk
+sudo apt-get ${ANSWER} install wget
+sudo apt-get ${ANSWER} install git-core ant openjdk-7-jdk
 echo "export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64" >> ~/.profile 
 source ~/.profile
 echo $JAVA_HOME
