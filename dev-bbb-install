@@ -98,16 +98,19 @@ EOF
 source ~/.profile 
 mxmlc -version
 cd ~/dev/
-git clone $BBBGIT -d bigbluebutton
+git clone $BBBGIT bigbluebutton
 if [ ! -d $HOME/.config ]
 then
 	mkdir $HOME/.config
 	sudo chown --reference=$HOME/.profile $HOME/.config/
 fi
+if [ -d $HOME/dev/bigbluebutton ]
+then
 cd ~/dev/bigbluebutton/
-git status
-git remote add upstream ${BBBGIT}.git
-git remote -v
-git fetch upstream
-git checkout -b my-1.0-work upstream/v1.0.x-release
+	git status
+	git remote add upstream ${BBBGIT}.git
+	git remote -v
+	git fetch upstream
+	git checkout -b my-1.0-work upstream/v1.0.x-release
+fi
 
