@@ -219,6 +219,13 @@ then
 	sudo service haveged restart
 fi
 
+# Remove apache2 so it doesn't interfere with nginx
+
+if [ -d /etc/httpd ]
+then
+	sudo apt-get remove -y apache2
+fi
+
 # Install PPA repository, if specified
 
 if [ "${PPA}x" != "x" ]
