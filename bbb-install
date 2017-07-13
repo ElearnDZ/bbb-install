@@ -191,6 +191,10 @@ then
 	fi
 fi
 
+# Perform an initial apt-get update as apt-get is non-functional on some machines after initial install
+
+sudo apt-get ${ANSWER} update
+
 # Make sure locale is set to en_US.UTF-8
 
 sudo apt-get -f ${ANSWER} install language-pack-en
