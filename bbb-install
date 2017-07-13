@@ -251,7 +251,7 @@ fi
 
 # Install BBB
 
-sudo apt-get ${ANSWER} install bigbluebutton
+sudo apt-get install bigbluebutton
 
 # Install optional modules
 
