@@ -2,6 +2,8 @@
 
 Install BigBlueButton 1.0 using the instructions at http://docs.bigbluebutton.org/10install.html, and optionally install the development environment and tools.
 
+BigBlueButton 1.0 only runs on Ubuntu 14.04 x86_64.  This script will warn you if you try to install on any other distribution.
+
 This is an interactive installation, even with the -y switch.  You cannot leave it unattended as you will need to confirm installation of some items and agree to licenses.
 
 The installation process changes for each major release of BBB, so these scripts will require updating for BBB 1.1.
@@ -21,7 +23,7 @@ The script will try to install ffmpeg from source, as specified in the BBB insta
 
 The SSL certificate, key, and intermediate CA must be in ssl.crt, ssl.key, and ssl.ca in the same folder as the script.
 
-The script is intended to be run by a non-privileged user with sudo rights.  Do not run the script through sudo.  It calls sudo when specified by the BBB instructions.  A typical invocation might be:
+The script is intended to be run by a non-privileged user with sudo rights.  Do not run the script through sudo.  It calls sudo when specified by the BBB install instructions.  A typical invocation might be:
 
 	./bbb-install -n `hostname -f` -s `hostname -f` -y -e
 
