@@ -14,7 +14,7 @@ usage() {
 	exit 1
 }
 
-while getopts "b:h" flag
+while getopts "b:yh" flag
 do
 	case $flag in
 	b)
