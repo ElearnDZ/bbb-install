@@ -264,7 +264,7 @@ fi
 
 # Install BBB
 
-echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
 
 sudo apt-get --download-only ${LONG_ANSWER} install bigbluebutton # Download first to get two attempts at a successful download
 sudo apt-get ${LONG_ANSWER} install bigbluebutton
