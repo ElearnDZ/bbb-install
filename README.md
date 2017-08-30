@@ -8,7 +8,7 @@ This is an interactive installation, even with the -y switch.  You cannot leave 
 
 The installation process changes for each major release of BBB, so these scripts will require updating for BBB 1.1.
 
-	bbb-install [-h] [-c] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]
+	bbb-install [-h] [-c] [-e] [-y] [-m extra-modules] [-p ffmpeg-ppa-url] [-n hostname-or-ip] [-s tls_hostname]
 	where:
 		-c = Do not enable SSL
 		-e = Install haveged for increased entropy on virtual machines
@@ -29,7 +29,7 @@ The script is intended to be run by a non-privileged user with sudo rights.  Do 
 
 The development environment can be installed using dev-bbb-install.
 
-	dev-bbb-install [-h] [-b gitrepo-url]
+	dev-bbb-install [-h] [-y] [-b gitrepo-url]
 	where:
 		-h = Help
 		-b <url> = BBB GIT repository to clone, e.g. -b https://github.com/bigbluebutton/bigbluebutton
