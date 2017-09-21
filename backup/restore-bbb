@@ -1,0 +1,109 @@
+#!/bin/sh
+#
+# Restore a BigBlueButton installation from a backup in /tmp/duply
+#
+# Stop the installed BBB instance, copy the files over, fix up the IP address and server name, and start it
+#
+
+BACKUP_DIR=/tmp/duply
+OLDHOST=
+NEWHOST=`hostname -f`
+INTERACTIVE=
+
+usage() {
+	echo "restore-bbb [-h] [-i] [-d backup-dir] [-f old-hostname] [-t new-hostname]"
+	echo "where:"
+	echo "	-h = Help"
+	echo "	-d <folder>   = Folder containing restored files"
+	echo "  -i = Copy from backup interactively"
+	echo "	-f <hostname> = Old BBB hostname or IP address appearing in configuration files"
+	echo "	-t <hostname> = New BBB hostname to use in configuration, if not default hostname"
+	exit 1
+}
+
+
+while getopts "d:f:t:h" flag
+do
+	case $flag in
+	d)
+		BACKUP_DIR=$OPTARG;;
+	f)
+		OLDHOST=$OPTARG;;
+	t)
+		NEWHOST=$OPTARG;;
+	i)
+		INTERACTIVE=i;;
+	h)
+		usage;;
+	esac
+done
+
+# Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group
+
+if [ `id -u` -eq 0 ]
+then
+	echo "Do not run as root.  Create a user ('ubuntu'?) and add to the sudo group"
+	echo "e.g. adduser ubuntu; gpasswd --add ubuntu sudo; su ubuntu; cd"
+	exit 1
+fi
+
+# Check BBB is installed (this does not guarantee that the restore was done after BBB was installed, resulting in correct file ownership)
+if [ ! -d /etc/bigbluebutton ]
+then
+	echo "BigBlueButton is not installed"
+	exit 1
+fi
+
+# Check backup exists
+if [ ! -d "${BACKUP_DIR}" ]
+then
+	echo "Cannot find backup folder '$BACKUP_DIR'"
+	exit 1
+fi
+
+if [ "$OLDHOST"x = 'x' ]
+then
+	echo "No old host name set"
+	exit 1
+fi
+
+if [ "$NEWHOST"x = 'x' ]
+then
+	echo "No new host name set"
+	exit 1
+fi
+
+if [ ! -x /usr/bin/dig ]
+then
+	sudo apt-get install dnsutils
+fi
+
+OLD_IP=`dig +short $OLDHOST A`
+NEW_IP=`dig +short $NEWHOST A`
+
+sudo bbb-conf --stop
+for i in /etc/bigbluebutton /var/bigbluebutton /opt/freeswitch /var/www/bigbluebutton /var/www/bigbluebutton-default /var/lib/tomcat7/webapps /var/lib/redis /usr/share/red5/webapps $HOME/dev
+do
+	if [ ! -d "${BACKUP_DIR}${i}" ]
+	then
+		echo "Cannot find ${BACKUP_DIR}${i}"
+	elif [ ! -d "${i}" ]
+	then
+		echo "Cannot find ${i}"
+	else
+		echo "Copying ${i} from ${BACKUP_DIR}"
+		sudo cp -pr${INTERACTIVE} ${BACKUP_DIR}${i} `dirname ${i}`
+	fi
+done
+if [ "$OLDHOST" != "$NEWHOST" ]
+then
+	echo "Changing '$OLDHOST' to '$NEWHOST' and '$OLD_IP' to '$NEW_IP'"
+	sudo sed -i -e "s/${OLDHOST}/${NEWHOST}/" -e "s/$OLD_IP/$NEW_IP/" /etc/bigbluebutton/nginx/*.nginx /usr/share/red5/webapps/sip/WEB-INF/bigbluebutton-sip.properties /opt/freeswitch/conf/vars.xml
+	if [ -d ${HOME}/dev ]
+	then
+		sed -i -e "s/${OLDHOST}/${NEWHOST}/" -e "s/$OLD_IP/$NEW_IP/" $HOME/dev/bigbluebutton/bigbluebutton-client/client/conf/config.xml
+	fi
+fi
+sudo bbb-conf --setip $NEWHOST
+sudo bbb-conf --clean
+
